@@ -1,0 +1,884 @@
+import React, { useState, useEffect } from 'react';
+import { Heart, ShoppingBag, Info, Play, Home, MapPin, Search, ExternalLink } from 'lucide-react';
+
+const ShelterPals = () => {
+  const [screen, setScreen] = useState('home');
+  const [pet, setPet] = useState(null);
+  const [kibble, setKibble] = useState(0);
+  const [inventory, setInventory] = useState([]);
+  const [petStats, setPetStats] = useState({ hunger: 100, happiness: 100 });
+  const [shelters, setShelters] = useState([]);
+  const [featuredAnimals, setFeaturedAnimals] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [zipCode, setZipCode] = useState('');
+  const [selectedAnimal, setSelectedAnimal] = useState(null);
+
+  // Fetch featured animals on mount
+  useEffect(() => {
+    fetchFeaturedAnimals();
+  }, []);
+
+  const fetchFeaturedAnimals = () => {
+    const mockAnimals = [
+      {
+        id: 1,
+        name: 'Charlie',
+        type: 'Dog',
+        breed: 'Labrador Retriever Mix',
+        age: '2 years',
+        gender: 'Male',
+        size: 'Large',
+        description: 'Charlie is a sweet, energetic boy who loves playing fetch and going for long walks. He\'s great with kids and other dogs! Charlie is house-trained and knows basic commands. He\'s looking for an active family who can keep up with his playful energy.',
+        image: '🐕',
+        shelter: 'Happy Tails Rescue',
+        location: 'Los Angeles, CA',
+        url: 'https://www.petfinder.com'
+      },
+      {
+        id: 2,
+        name: 'Luna',
+        type: 'Cat',
+        breed: 'Domestic Shorthair',
+        age: '1 year',
+        gender: 'Female',
+        size: 'Medium',
+        description: 'Luna is a gentle, affectionate girl who loves to cuddle. She\'s a bit shy at first but warms up quickly. Luna would do best in a quiet home where she can be the only pet. She enjoys sunbathing by the window and playing with feather toys.',
+        image: '🐈',
+        shelter: 'Paws Your Game',
+        location: 'Orange County, CA',
+        url: 'https://www.petfinder.com'
+      },
+      {
+        id: 3,
+        name: 'Max',
+        type: 'Dog',
+        breed: 'German Shepherd Mix',
+        age: '3 years',
+        gender: 'Male',
+        size: 'Large',
+        description: 'Max is a loyal and intelligent companion. He\'s well-trained, knows many commands, and would make an excellent family dog. Max is protective but gentle, and he loves going on adventures. He needs a home with a yard where he can run and play.',
+        image: '🐕‍🦺',
+        shelter: 'Second Chance Shelter',
+        location: 'San Diego, CA',
+        url: 'https://www.petfinder.com'
+      },
+      {
+        id: 4,
+        name: 'Bella',
+        type: 'Cat',
+        breed: 'Calico',
+        age: '4 years',
+        gender: 'Female',
+        size: 'Small',
+        description: 'Bella is a sweet senior kitty looking for a forever home to spend her golden years. She\'s calm, loving, and perfect for someone looking for a low-maintenance companion. Bella enjoys napping, gentle pets, and the occasional treat.',
+        image: '🐱',
+        shelter: 'Forever Felines',
+        location: 'Tustin, CA',
+        url: 'https://www.petfinder.com'
+      }
+    ];
+    
+    setFeaturedAnimals(mockAnimals);
+  };
+
+  const searchShelters = () => {
+    if (!zipCode) return;
+    setLoading(true);
+    
+    const mockShelters = [
+      {
+        id: 1,
+        name: 'Paws Your Game',
+        address: '123 Main St, Tustin, CA 92780',
+        phone: '(555) 123-4567',
+        email: 'info@pawsyourgame.org',
+        website: 'https://pawsyourgame.org',
+        distance: '2.3 miles',
+        animals: 45,
+        description: 'Dedicated to finding loving homes for shelter animals and supporting local animal welfare initiatives.'
+      },
+      {
+        id: 2,
+        name: 'Orange County Animal Care',
+        address: '561 The City Dr, Orange, CA 92868',
+        phone: '(714) 935-6848',
+        email: 'animalcare@ocgov.com',
+        website: 'https://ocpetinfo.com',
+        distance: '5.7 miles',
+        animals: 120,
+        description: 'County-run shelter providing adoption services, lost pet assistance, and animal control.'
+      },
+      {
+        id: 3,
+        name: 'Second Chance Shelter',
+        address: '789 Rescue Rd, Irvine, CA 92618',
+        phone: '(949) 555-7890',
+        email: 'adopt@secondchance.org',
+        website: 'https://secondchance.org',
+        distance: '8.1 miles',
+        animals: 67,
+        description: 'No-kill shelter specializing in senior and special needs animals.'
+      },
+      {
+        id: 4,
+        name: 'Happy Tails Rescue',
+        address: '456 Hope Ave, Santa Ana, CA 92701',
+        phone: '(714) 555-2468',
+        email: 'info@happytails.org',
+        website: 'https://happytails.org',
+        distance: '6.4 miles',
+        animals: 89,
+        description: 'Foster-based rescue focusing on dogs and cats of all ages and breeds.'
+      }
+    ];
+    
+    setShelters(mockShelters);
+    setLoading(false);
+  };
+
+  // Pet selection
+  const pets = [
+    { id: 'dog', name: 'Buddy', type: 'dog', color: '#D2691E' },
+    { id: 'cat', name: 'Whiskers', type: 'cat', color: '#FF6347' },
+    { id: 'dog2', name: 'Luna', type: 'dog', color: '#4A5568' },
+  ];
+
+  // Shop items
+  const shopItems = [
+    { id: 'treat', name: 'Tasty Treat', cost: 10, effect: 'hunger', value: 20 },
+    { id: 'toy', name: 'Squeaky Toy', cost: 25, effect: 'happiness', value: 30 },
+    { id: 'ball', name: 'Tennis Ball', cost: 15, effect: 'happiness', value: 20 },
+  ];
+
+  // Stat decay
+  useEffect(() => {
+    if (!pet) return;
+    const interval = setInterval(() => {
+      setPetStats(prev => ({
+        hunger: Math.max(0, prev.hunger - 1),
+        happiness: Math.max(0, prev.happiness - 1)
+      }));
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [pet]);
+
+  const adoptPet = (selectedPet) => {
+    setPet(selectedPet);
+    setKibble(50);
+    setScreen('main');
+  };
+
+  const useItem = (item) => {
+    setPetStats(prev => ({
+      ...prev,
+      [item.effect]: Math.min(100, prev[item.effect] + item.value)
+    }));
+    setInventory(prev => prev.filter((_, i) => i !== prev.findIndex(inv => inv.id === item.id)));
+  };
+
+  const buyItem = (item) => {
+    if (kibble >= item.cost) {
+      setKibble(prev => prev - item.cost);
+      setInventory(prev => [...prev, item]);
+    }
+  };
+
+  // Home Screen
+  if (screen === 'home' && !pet) {
+    return (
+      <div className="w-full min-h-screen bg-gradient-to-b from-blue-100 to-green-100 p-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-lg shadow-2xl p-8 mb-6">
+            <h1 className="text-6xl font-bold text-center mb-4 text-blue-600">🐾 Shelter Pals</h1>
+            <p className="text-center text-xl text-gray-600 mb-2">Play. Care. Make a Real Difference.</p>
+            <p className="text-center text-gray-500 mb-8">Every game you play helps real shelter animals find homes</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              {pets.map(p => (
+                <div key={p.id} className="border-2 border-gray-300 rounded-lg p-4 hover:border-blue-500 cursor-pointer transition transform hover:scale-105"
+                     onClick={() => adoptPet(p)}>
+                  <PetSprite type={p.type} color={p.color} size={64} />
+                  <p className="text-center mt-2 font-bold">{p.name}</p>
+                  <p className="text-center text-sm text-gray-500">{p.type}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <button onClick={() => setScreen('adopt-real')} 
+                      className="bg-green-500 text-white py-4 rounded-lg hover:bg-green-600 font-bold text-lg flex items-center justify-center gap-2">
+                <Heart size={20} /> Adopt a Real Pet
+              </button>
+              <button onClick={() => setScreen('shelters')} 
+                      className="bg-purple-500 text-white py-4 rounded-lg hover:bg-purple-600 font-bold text-lg flex items-center justify-center gap-2">
+                <MapPin size={20} /> Find Local Shelters
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg p-6 shadow-lg">
+            <h3 className="font-bold text-2xl mb-3">🎯 Our Mission</h3>
+            <p className="text-lg mb-4">Shelter Pals connects you with real adoptable animals while you care for your virtual pet. Every Kibble you earn represents real impact for shelter animals.</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+              <div className="bg-white bg-opacity-20 rounded p-3">
+                <p className="text-3xl font-bold">100+</p>
+                <p className="text-sm">Partner Shelters</p>
+              </div>
+              <div className="bg-white bg-opacity-20 rounded p-3">
+                <p className="text-3xl font-bold">1000+</p>
+                <p className="text-sm">Animals Helped</p>
+              </div>
+              <div className="bg-white bg-opacity-20 rounded p-3">
+                <p className="text-3xl font-bold">$50K+</p>
+                <p className="text-sm">Funds Raised</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main Game Screen
+  if (screen === 'main') {
+    return (
+      <div className="w-full min-h-screen bg-gradient-to-b from-green-100 to-blue-100 flex flex-col">
+        <div className="bg-white shadow-md p-4">
+          <div className="max-w-6xl mx-auto flex justify-between items-center flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <PetSprite type={pet.type} color={pet.color} size={40} />
+              <div>
+                <h2 className="font-bold text-xl">{pet.name}</h2>
+                <p className="text-sm text-gray-600">Kibble: {kibble} 🌾</p>
+              </div>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <button onClick={() => setScreen('games')} className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 flex items-center gap-2">
+                <Play size={16} /> Games
+              </button>
+              <button onClick={() => setScreen('shop')} className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 flex items-center gap-2">
+                <ShoppingBag size={16} /> Shop
+              </button>
+              <button onClick={() => setScreen('adopt-real')} className="bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600 flex items-center gap-2">
+                <Heart size={16} /> Adopt Real
+              </button>
+              <button onClick={() => setScreen('shelters')} className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center gap-2">
+                <MapPin size={16} /> Shelters
+              </button>
+              <button onClick={() => setScreen('impact')} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2">
+                <Info size={16} /> Impact
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="text-center">
+            <PetSprite type={pet.type} color={pet.color} size={128} />
+            
+            <div className="mt-6 space-y-3">
+              <StatBar label="Hunger" value={petStats.hunger} color="orange" />
+              <StatBar label="Happiness" value={petStats.happiness} color="pink" />
+            </div>
+
+            {inventory.length > 0 && (
+              <div className="mt-6">
+                <h3 className="font-bold mb-2">Your Items:</h3>
+                <div className="flex gap-2 justify-center flex-wrap">
+                  {inventory.map((item, i) => (
+                    <button key={i} onClick={() => useItem(item)}
+                            className="bg-white border-2 border-gray-300 rounded px-3 py-1 text-sm hover:border-blue-500">
+                      {item.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Featured Animals Screen
+  if (screen === 'adopt-real') {
+    if (selectedAnimal) {
+      return (
+        <div className="w-full min-h-screen bg-gradient-to-b from-pink-100 to-purple-100 p-4">
+          <button onClick={() => setSelectedAnimal(null)} className="mb-4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+            ← Back to Animals
+          </button>
+          
+          <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-2xl overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              <div className="bg-gradient-to-br from-pink-200 to-purple-200 p-12 flex items-center justify-center">
+                <div className="text-9xl">{selectedAnimal.image}</div>
+              </div>
+              
+              <div className="p-8">
+                <h2 className="text-4xl font-bold mb-2">{selectedAnimal.name}</h2>
+                <p className="text-xl text-gray-600 mb-6">{selectedAnimal.breed}</p>
+                
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-gray-100 rounded p-3">
+                    <p className="text-sm text-gray-600">Age</p>
+                    <p className="font-bold">{selectedAnimal.age}</p>
+                  </div>
+                  <div className="bg-gray-100 rounded p-3">
+                    <p className="text-sm text-gray-600">Gender</p>
+                    <p className="font-bold">{selectedAnimal.gender}</p>
+                  </div>
+                  <div className="bg-gray-100 rounded p-3">
+                    <p className="text-sm text-gray-600">Size</p>
+                    <p className="font-bold">{selectedAnimal.size}</p>
+                  </div>
+                  <div className="bg-gray-100 rounded p-3">
+                    <p className="text-sm text-gray-600">Type</p>
+                    <p className="font-bold">{selectedAnimal.type}</p>
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <h3 className="font-bold text-lg mb-2">About {selectedAnimal.name}</h3>
+                  <p className="text-gray-700 leading-relaxed">{selectedAnimal.description}</p>
+                </div>
+                
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
+                  <p className="font-bold text-blue-800 mb-1">📍 {selectedAnimal.shelter}</p>
+                  <p className="text-sm text-gray-600">{selectedAnimal.location}</p>
+                </div>
+                
+                <div className="space-y-3">
+                  <a href={selectedAnimal.url} target="_blank" rel="noopener noreferrer"
+                     className="block w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 font-bold text-center">
+                    Adopt {selectedAnimal.name} <ExternalLink size={16} className="inline ml-1" />
+                  </a>
+                  <button onClick={() => setScreen('shelters')}
+                          className="block w-full bg-purple-500 text-white py-3 rounded-lg hover:bg-purple-600 font-bold">
+                    Find More Shelters
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="w-full min-h-screen bg-gradient-to-b from-pink-100 to-purple-100 p-4">
+        <button onClick={() => setScreen(pet ? 'main' : 'home')} className="mb-4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 flex items-center gap-2">
+          <Home size={16} /> Back
+        </button>
+        
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-lg shadow-2xl p-8 mb-6">
+            <h2 className="text-4xl font-bold text-center mb-2">💕 Meet Your New Best Friend</h2>
+            <p className="text-center text-gray-600 mb-6">These animals are waiting for their forever homes</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredAnimals.map(animal => (
+                <div key={animal.id} 
+                     className="bg-white border-2 border-gray-200 rounded-lg overflow-hidden hover:border-pink-500 cursor-pointer transition transform hover:scale-105"
+                     onClick={() => setSelectedAnimal(animal)}>
+                  <div className="bg-gradient-to-br from-pink-200 to-purple-200 p-8 flex items-center justify-center">
+                    <div className="text-6xl">{animal.image}</div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold text-xl mb-1">{animal.name}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{animal.breed}</p>
+                    <p className="text-xs text-gray-500 mb-3">{animal.shelter}</p>
+                    <button className="w-full bg-pink-500 text-white py-2 rounded hover:bg-pink-600 text-sm font-bold">
+                      Learn More
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg p-6 shadow-lg text-center">
+            <h3 className="font-bold text-2xl mb-2">🏠 Ready to Adopt?</h3>
+            <p className="mb-4">Visit your local shelter or use our shelter finder to meet these amazing animals in person!</p>
+            <button onClick={() => setScreen('shelters')} 
+                    className="bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-gray-100 font-bold">
+              Find Shelters Near You
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Shelter Finder Screen
+  if (screen === 'shelters') {
+    return (
+      <div className="w-full min-h-screen bg-gradient-to-b from-orange-100 to-yellow-100 p-4">
+        <button onClick={() => setScreen(pet ? 'main' : 'home')} className="mb-4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 flex items-center gap-2">
+          <Home size={16} /> Back
+        </button>
+        
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-lg shadow-2xl p-8 mb-6">
+            <h2 className="text-4xl font-bold text-center mb-2">🗺️ Find Shelters Near You</h2>
+            <p className="text-center text-gray-600 mb-8">Discover local organizations helping animals in need</p>
+            
+            <div className="max-w-2xl mx-auto mb-8">
+              <div className="flex gap-2">
+                <input 
+                  type="text"
+                  placeholder="Enter ZIP code (e.g., 92780)"
+                  value={zipCode}
+                  onChange={(e) => setZipCode(e.target.value)}
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                />
+                <button 
+                  onClick={searchShelters}
+                  className="bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 font-bold flex items-center gap-2">
+                  <Search size={20} /> Search
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg p-6 mb-8">
+              <div className="flex items-start gap-4">
+                <div className="text-4xl">🏆</div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-2xl mb-2">Featured Partner: Paws Your Game</h3>
+                  <p className="mb-4">Our primary partner organization dedicated to connecting shelter animals with loving homes and supporting local animal welfare initiatives.</p>
+                  <button className="bg-white text-purple-600 px-6 py-2 rounded-lg hover:bg-gray-100 font-bold">
+                    Learn More About PYG
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {loading ? (
+              <p className="text-center">Searching shelters...</p>
+            ) : shelters.length > 0 ? (
+              <div className="space-y-4">
+                <h3 className="font-bold text-2xl mb-4">Shelters Near You</h3>
+                {shelters.map(shelter => (
+                  <div key={shelter.id} className="bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-orange-500 transition">
+                    <div className="flex justify-between items-start mb-4 flex-wrap gap-4">
+                      <div>
+                        <h4 className="font-bold text-xl mb-1">{shelter.name}</h4>
+                        <p className="text-sm text-gray-600 mb-2">{shelter.address}</p>
+                        <p className="text-sm text-orange-600 font-bold">{shelter.distance} away</p>
+                      </div>
+                      <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg">
+                        <p className="text-2xl font-bold">{shelter.animals}</p>
+                        <p className="text-xs">Animals</p>
+                      </div>
+                    </div>
+                    
+                    <p className="text-gray-700 mb-4">{shelter.description}</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm mb-4">
+                      <p className="text-gray-600">📞 {shelter.phone}</p>
+                      <p className="text-gray-600">✉️ {shelter.email}</p>
+                      <a href={shelter.website} target="_blank" rel="noopener noreferrer" 
+                         className="text-blue-600 hover:underline">
+                        🌐 Visit Website <ExternalLink size={12} className="inline" />
+                      </a>
+                    </div>
+                    
+                    <div className="flex gap-2 flex-wrap">
+                      <button className="flex-1 bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 font-bold min-w-[200px]">
+                        View Available Pets
+                      </button>
+                      <button className="flex-1 bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 font-bold min-w-[200px]">
+                        Get Directions
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-2xl mb-2">🔍</p>
+                <p className="text-gray-600">Enter your ZIP code to find shelters near you</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Games Screen
+  if (screen === 'games') {
+    return (
+      <div className="w-full min-h-screen bg-gradient-to-b from-purple-100 to-pink-100 p-4">
+        <button onClick={() => setScreen('main')} className="mb-4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 flex items-center gap-2">
+          <Home size={16} /> Back Home
+        </button>
+        
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-8">Mini Games</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <GameCard 
+              title="Treat Catch"
+              description="Catch falling treats to earn Kibble!"
+              onPlay={() => setScreen('treat-catch')}
+            />
+            <GameCard 
+              title="Memory Match"
+              description="Match pairs of pet cards!"
+              onPlay={() => setScreen('memory-match')}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Treat Catch Game
+  if (screen === 'treat-catch') {
+    return <TreatCatchGame onBack={() => setScreen('games')} onEarn={(amount) => setKibble(k => k + amount)} />;
+  }
+
+  // Memory Match Game
+  if (screen === 'memory-match') {
+    return <MemoryMatchGame onBack={() => setScreen('games')} onEarn={(amount) => setKibble(k => k + amount)} />;
+  }
+
+  // Shop Screen
+  if (screen === 'shop') {
+    return (
+      <div className="w-full min-h-screen bg-gradient-to-b from-yellow-100 to-orange-100 p-4">
+        <button onClick={() => setScreen('main')} className="mb-4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 flex items-center gap-2">
+          <Home size={16} /> Back Home
+        </button>
+        
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-2">Pet Shop</h2>
+          <p className="text-center mb-8 text-gray-600">Your Kibble: {kibble} 🌾</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {shopItems.map(item => (
+              <div key={item.id} className="bg-white rounded-lg p-6 shadow-lg">
+                <h3 className="font-bold text-xl mb-2">{item.name}</h3>
+                <p className="text-sm text-gray-600 mb-4">+{item.value} {item.effect}</p>
+                <p className="text-lg font-bold text-green-600 mb-4">{item.cost} Kibble</p>
+                <button 
+                  onClick={() => buyItem(item)}
+                  disabled={kibble < item.cost}
+                  className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed">
+                  Buy
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Impact Screen
+  if (screen === 'impact') {
+    const totalDonation = (kibble * 0.01).toFixed(2);
+    return (
+      <div className="w-full min-h-screen bg-gradient-to-b from-blue-100 to-green-100 p-4">
+        <button onClick={() => setScreen('main')} className="mb-4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 flex items-center gap-2">
+          <Home size={16} /> Back Home
+        </button>
+        
+        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-2xl p-8">
+          <h2 className="text-3xl font-bold text-center mb-8 text-blue-600">Your Impact 💙</h2>
+          
+          <div className="bg-green-50 border-2 border-green-300 rounded-lg p-6 mb-6">
+            <h3 className="text-2xl font-bold text-center mb-2">Virtual Donation Generated</h3>
+            <p className="text-5xl font-bold text-center text-green-600">${totalDonation}</p>
+            <p className="text-center text-gray-600 mt-2">Based on {kibble} Kibble earned</p>
+          </div>
+
+          <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-6 mb-6">
+            <h3 className="text-xl font-bold mb-4">🐾 Featured Partner: Paws Your Game</h3>
+            <p className="text-gray-700 mb-4">
+              Paws Your Game is dedicated to helping shelter animals find loving homes and supporting 
+              local animal welfare initiatives.
+            </p>
+            <button className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+              Learn More & Adopt
+            </button>
+          </div>
+
+          <div className="bg-purple-50 border-2 border-purple-300 rounded-lg p-6">
+            <h3 className="text-xl font-bold mb-4">How It Works</h3>
+            <ul className="space-y-2 text-gray-700">
+              <li>✨ Play games to earn Kibble</li>
+              <li>💰 Every 100 Kibble = $1 donated to partner shelters</li>
+              <li>🏠 Learn about local adoption opportunities</li>
+              <li>❤️ Make a real difference while having fun!</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+// Pet Sprite Component
+const PetSprite = ({ type, color, size }) => {
+  if (type === 'dog') {
+    return (
+      <svg width={size} height={size} viewBox="0 0 16 16" className="mx-auto" style={{ imageRendering: 'pixelated' }}>
+        <rect x="4" y="4" width="8" height="8" fill={color} />
+        <rect x="3" y="3" width="2" height="2" fill={color} />
+        <rect x="11" y="3" width="2" height="2" fill={color} />
+        <rect x="5" y="7" width="2" height="2" fill="#000" />
+        <rect x="9" y="7" width="2" height="2" fill="#000" />
+        <rect x="6" y="9" width="4" height="2" fill="#000" />
+        <rect x="4" y="12" width="2" height="2" fill={color} />
+        <rect x="10" y="12" width="2" height="2" fill={color} />
+      </svg>
+    );
+  }
+  
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" className="mx-auto" style={{ imageRendering: 'pixelated' }}>
+      <rect x="5" y="5" width="6" height="6" fill={color} />
+      <rect x="3" y="2" width="2" height="3" fill={color} />
+      <rect x="11" y="2" width="2" height="3" fill={color} />
+      <rect x="6" y="7" width="1" height="1" fill="#000" />
+      <rect x="9" y="7" width="1" height="1" fill="#000" />
+      <rect x="7" y="9" width="2" height="1" fill="#000" />
+      <rect x="5" y="11" width="2" height="2" fill={color} />
+      <rect x="9" y="11" width="2" height="2" fill={color} />
+    </svg>
+  );
+};
+
+// Stat Bar Component
+const StatBar = ({ label, value, color }) => (
+  <div className="w-64">
+    <div className="flex justify-between text-sm mb-1">
+      <span className="font-bold">{label}</span>
+      <span>{value}%</span>
+    </div>
+    <div className="w-full bg-gray-200 rounded-full h-4">
+      <div 
+        className="h-4 rounded-full transition-all duration-300"
+        style={{ 
+          width: `${value}%`, 
+          backgroundColor: color === 'orange' ? '#fb923c' : '#f9a8d4' 
+        }}
+      />
+    </div>
+  </div>
+);
+
+// Game Card Component
+const GameCard = ({ title, description, onPlay }) => (
+  <div className="bg-white rounded-lg shadow-lg p-6">
+    <h3 className="text-2xl font-bold mb-2">{title}</h3>
+    <p className="text-gray-600 mb-4">{description}</p>
+    <button onClick={onPlay} className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 font-bold">
+      Play Now!
+    </button>
+  </div>
+);
+
+// Treat Catch Game
+const TreatCatchGame = ({ onBack, onEarn }) => {
+  const [score, setScore] = useState(0);
+  const [gameActive, setGameActive] = useState(false);
+  const [playerX, setPlayerX] = useState(50);
+  const [treats, setTreats] = useState([]);
+  const [timeLeft, setTimeLeft] = useState(30);
+
+  useEffect(() => {
+    if (!gameActive) return;
+    
+    const gameInterval = setInterval(() => {
+      setTreats(prev => {
+        const updated = prev.map(t => ({ ...t, y: t.y + 2 })).filter(t => t.y < 100);
+        if (Math.random() > 0.95) {
+          updated.push({ id: Date.now(), x: Math.random() * 90, y: 0 });
+        }
+        return updated;
+      });
+    }, 50);
+
+    const timerInterval = setInterval(() => {
+      setTimeLeft(t => {
+        if (t <= 1) {
+          setGameActive(false);
+          onEarn(score);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(gameInterval);
+      clearInterval(timerInterval);
+    };
+  }, [gameActive, score, onEarn]);
+
+  useEffect(() => {
+    if (!gameActive) return;
+    
+    const checkCollisions = () => {
+      setTreats(prev => {
+        const remaining = prev.filter(t => {
+          const hit = t.y > 85 && t.y < 95 && Math.abs(t.x - playerX) < 8;
+          if (hit) setScore(s => s + 1);
+          return !hit;
+        });
+        return remaining;
+      });
+    };
+    
+    const interval = setInterval(checkCollisions, 50);
+    return () => clearInterval(interval);
+  }, [gameActive, playerX]);
+
+  const startGame = () => {
+    setGameActive(true);
+    setScore(0);
+    setTreats([]);
+    setTimeLeft(30);
+  };
+
+  return (
+    <div className="w-full min-h-screen bg-gradient-to-b from-green-100 to-blue-100 p-4">
+      <button onClick={onBack} className="mb-4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+        Back to Games
+      </button>
+      
+      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-2xl p-8">
+        <h2 className="text-3xl font-bold text-center mb-4">Treat Catch!</h2>
+        <div className="flex justify-between mb-4">
+          <p className="text-xl">Score: {score}</p>
+          <p className="text-xl">Time: {timeLeft}s</p>
+        </div>
+
+        {!gameActive && timeLeft === 30 && (
+          <button onClick={startGame} className="w-full bg-green-500 text-white py-4 rounded-lg hover:bg-green-600 font-bold text-xl mb-4">
+            Start Game
+          </button>
+        )}
+
+        {!gameActive && timeLeft === 0 && (
+          <div className="text-center mb-4">
+            <p className="text-2xl font-bold mb-2">Game Over!</p>
+            <p className="text-xl mb-4">You earned {score} Kibble!</p>
+            <button onClick={startGame} className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 font-bold">
+              Play Again
+            </button>
+          </div>
+        )}
+
+        <div 
+          className="relative bg-sky-200 rounded-lg overflow-hidden"
+          style={{ height: '400px' }}
+          onMouseMove={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            setPlayerX(Math.max(5, Math.min(95, x)));
+          }}
+        >
+          {treats.map(treat => (
+            <div key={treat.id} className="absolute w-8 h-8 text-2xl" style={{ left: `${treat.x}%`, top: `${treat.y}%` }}>
+              🦴
+            </div>
+          ))}
+          
+          <div className="absolute bottom-0 w-16 h-12 text-4xl" style={{ left: `${playerX}%`, transform: 'translateX(-50%)' }}>
+            🥣
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Memory Match Game
+const MemoryMatchGame = ({ onBack, onEarn }) => {
+  const [cards, setCards] = useState([]);
+  const [flipped, setFlipped] = useState([]);
+  const [matched, setMatched] = useState([]);
+  const [moves, setMoves] = useState(0);
+  const [gameStarted, setGameStarted] = useState(false);
+
+  const cardSymbols = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'];
+
+  const initGame = () => {
+    const deck = [...cardSymbols, ...cardSymbols]
+      .sort(() => Math.random() - 0.5)
+      .map((symbol, i) => ({ id: i, symbol }));
+    setCards(deck);
+    setFlipped([]);
+    setMatched([]);
+    setMoves(0);
+    setGameStarted(true);
+  };
+
+  const handleCardClick = (id) => {
+    if (flipped.length === 2 || flipped.includes(id) || matched.includes(id)) return;
+    
+    const newFlipped = [...flipped, id];
+    setFlipped(newFlipped);
+
+    if (newFlipped.length === 2) {
+      setMoves(m => m + 1);
+      const [first, second] = newFlipped;
+      if (cards[first].symbol === cards[second].symbol) {
+        setMatched([...matched, first, second]);
+        setFlipped([]);
+        
+        if (matched.length + 2 === cards.length) {
+          const score = Math.max(1, 20 - moves);
+          setTimeout(() => {
+            onEarn(score);
+            alert(`You won! Earned ${score} Kibble!`);
+          }, 500);
+        }
+      } else {
+        setTimeout(() => setFlipped([]), 1000);
+      }
+    }
+  };
+
+  return (
+    <div className="w-full min-h-screen bg-gradient-to-b from-purple-100 to-pink-100 p-4">
+      <button onClick={onBack} className="mb-4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+        Back to Games
+      </button>
+      
+      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-2xl p-8">
+        <h2 className="text-3xl font-bold text-center mb-4">Memory Match!</h2>
+        <p className="text-center mb-4">Moves: {moves}</p>
+
+        {!gameStarted ? (
+          <button onClick={initGame} className="w-full bg-purple-500 text-white py-4 rounded-lg hover:bg-purple-600 font-bold text-xl mb-4">
+            Start Game
+          </button>
+        ) : (
+          <div className="grid grid-cols-4 gap-4">
+            {cards.map((card) => (
+              <button
+                key={card.id}
+                onClick={() => handleCardClick(card.id)}
+                className={`aspect-square text-4xl rounded-lg transition-all ${
+                  flipped.includes(card.id) || matched.includes(card.id)
+                    ? 'bg-white border-4 border-purple-500'
+                    : 'bg-purple-300 hover:bg-purple-400'
+                }`}
+              >
+                {(flipped.includes(card.id) || matched.includes(card.id)) ? card.symbol : '?'}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ShelterPals;
